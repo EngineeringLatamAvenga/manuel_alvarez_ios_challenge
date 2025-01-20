@@ -25,8 +25,9 @@ struct UalaChallengeApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CityListScreen()
         }
+        .environment(CitiesStore(httpClient: .development))
         .modelContainer(sharedModelContainer)
     }
 }
