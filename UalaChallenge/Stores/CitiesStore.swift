@@ -13,15 +13,48 @@ class CitiesStore {
     
     let httpClient: HTTPClient
     private(set) var cities: [City] = []
-    private(set) var myCities: [City] = []
+    private(set) var filteredCities: [City] = []
+    private(set) var isLoading: Bool = true
     
+    private var cityIndex: [Character: [City]] = [:]
+    
+
     init(httpClient: HTTPClient) {
         self.httpClient = httpClient
     }
     
     func loadAllCities() async throws {
+        isLoading = true
+        self.cities.removeAll()
         let resource = Resource(url: Constants.Urls.cities, modelType: [City].self)
-        cities = try await httpClient.load(resource)
+        let data = try await httpClient.load(resource).sorted { ($0.name, $0.country) < ($1.name, $1.country) }
+        self.cities = data
+        for city in data {
+            let firstLetter = city.name.lowercased().first!
+            if cityIndex[firstLetter] == nil {
+                cityIndex[firstLetter] = []
+            }
+            cityIndex[firstLetter]?.append(city)
+        }
+        isLoading = false
     }
-    
+
+    func searchCities(prefix: String, completion: @escaping ([City]) -> Void) {
+        self.isLoading = true
+        DispatchQueue.global(qos: .background).async {
+            guard let firstLetter = prefix.lowercased().first else {
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    completion(self.cities)
+                }
+                return
+            }
+            let filteredCities = self.cityIndex[firstLetter]?.filter { $0.name.lowercased().starts(with: prefix.lowercased())} ?? []
+            DispatchQueue.main.async {
+                self.isLoading = false
+                completion(filteredCities)
+            }
+        }
+    }
+
 }
