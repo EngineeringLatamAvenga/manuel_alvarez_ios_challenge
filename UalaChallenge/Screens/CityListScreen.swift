@@ -9,12 +9,12 @@ import SwiftUI
 
 struct CityListScreen: View {
     
-    //MARK: Properties:
+    //MARK: - Properties:
     @Environment(CitiesStore.self) private var citiesStore
     @State private var searchText: String = ""
     @State private var filteredCities: [City] = []
     
-    
+    // MARK: - Private methods:
     private func filterCities(with prefix: String) {
         citiesStore.searchCities(prefix: prefix) { result in
             self.filteredCities = result
@@ -33,15 +33,18 @@ struct CityListScreen: View {
         }
     }
     
-    
     var body: some View {
         ZStack {
             if citiesStore.isLoading {
                 ProgressView("Loading...")
             } else {
-                List(filteredCities) { city in
-                    NavigationLink(destination: Text("Here is the map of \(city.name)")) {
-                        CityCellView(city: city)
+                if filteredCities.isEmpty {
+                    EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
+                } else {
+                    List(filteredCities) { city in
+                        NavigationLink(destination: MapDetailScreen(city: city)) {
+                            CityCellView(city: city)
+                        }
                     }
                 }
             }
