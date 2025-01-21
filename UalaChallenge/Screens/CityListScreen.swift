@@ -21,8 +21,7 @@ struct CityListScreen: View {
         }
     }
     
-    private func resetValues() {
-        
+    private func applyFilter() {
         DispatchQueue.global(qos: .userInteractive).async {
             DispatchQueue.main.async {
                 if self.searchText.isEmpty {
@@ -41,7 +40,9 @@ struct CityListScreen: View {
                 ProgressView("Loading...")
             } else {
                 List(filteredCities) { city in
-                    CityCellView(city: city)
+                    NavigationLink(destination: Text("Here is the map of \(city.name)")) {
+                        CityCellView(city: city)
+                    }
                 }
             }
         }
@@ -49,13 +50,14 @@ struct CityListScreen: View {
         .task {
             do {
                 try await citiesStore.loadAllCities()
-                resetValues()
+                applyFilter()
             } catch {
                 print(error.localizedDescription)
             }
         }
         .searchable(text: $searchText, prompt: "Search cities")
-        .onChange(of: searchText) { resetValues() }
+        .disabled(citiesStore.isLoading)
+        .onChange(of: searchText) { applyFilter() }
     }
 }
 

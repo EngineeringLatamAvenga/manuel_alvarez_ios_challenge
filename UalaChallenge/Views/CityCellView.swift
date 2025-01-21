@@ -11,9 +11,16 @@ struct CityCellView: View {
     let city: City
     
     var body: some View {
-        VStack {
-            Text(city.filterId)
-                .font(.title)
+        HStack() {
+            VStack(alignment: .leading) {
+                Text(city.title)
+                    .font(.title)
+                HStack {
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(.purple)
+                    Text(city.subtitle)
+                }
+            }
         }
     }
 }

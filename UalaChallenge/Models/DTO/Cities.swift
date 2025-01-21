@@ -9,17 +9,18 @@ import Foundation
 
 
 struct City: Identifiable, Codable {
-    var id: Int
-    var filterId: String { "\(name), \(country)" }
-    var name: String
-    var country: String
-    var coordinates: Coordinates
+    let id = UUID()
+    var _id: Int?
+    var title: String { "\(name), \(country)" }
+    var subtitle: String { "Lat: \(coordinates.latitude), Lon: \(coordinates.longitude)" }
+    let name: String
+    let country: String
+    let coordinates: Coordinates
     var isFavorite: Bool = false
     
     private enum CodingKeys: String, CodingKey {
-        case id = "_id"
         case coordinates = "coord"
-        case name, country
+        case name, country, _id
     }
 }
 
@@ -37,7 +38,7 @@ struct Coordinates: Codable {
 extension City {
     static var previewItem: City {
         .init(
-            id: 5128638,
+            _id: 1,
             name: "New York",
             country: "US",
             coordinates: .init(longitude: 75.49990, latitude: 43.000351)
