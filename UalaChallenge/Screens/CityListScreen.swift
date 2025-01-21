@@ -34,33 +34,40 @@ struct CityListScreen: View {
     }
     
     var body: some View {
-        ZStack {
-            if citiesStore.isLoading {
-                ProgressView("Loading...")
-            } else {
-                if filteredCities.isEmpty {
-                    EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
+        NavigationStack {
+            ZStack {
+                if citiesStore.isLoading {
+                    ProgressView("Loading...")
                 } else {
-                    List(filteredCities) { city in
-                        NavigationLink(destination: MapDetailScreen(city: city)) {
-                            CityCellView(city: city)
+                    if filteredCities.isEmpty {
+                        EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
+                    } else {
+                        ScrollView {
+                            LazyVStack {
+                                ForEach(filteredCities) { city in
+                                    CityCellView(city: city)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .cornerRadius(8)
+                                        
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        .navigationTitle("Cities")
-        .task {
-            do {
-                try await citiesStore.loadAllCities()
-                applyFilter()
-            } catch {
-                print(error.localizedDescription)
+            .navigationTitle("Cities")
+            .task {
+                do {
+                    try await citiesStore.loadAllCities()
+                    applyFilter()
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
+            .searchable(text: $searchText, prompt: "Search cities")
+            .disabled(citiesStore.isLoading)
+            .onChange(of: searchText) { applyFilter() }
         }
-        .searchable(text: $searchText, prompt: "Search cities")
-        .disabled(citiesStore.isLoading)
-        .onChange(of: searchText) { applyFilter() }
     }
 }
 
