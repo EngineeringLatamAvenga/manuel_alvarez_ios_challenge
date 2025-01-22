@@ -108,7 +108,7 @@ class DevelopmentHTTPClient: HTTPClientProtocol {
     }
     
     // Sample data to return during development
-    private let sampleCities: [City] = City.cityItems
+    let sampleCities: [City] = City.cityItems
     
     // Implement the required method from HTTPClientProtocol
     func load<T>(_ resource: Resource<T>) async throws -> T where T : Decodable, T : Encodable {

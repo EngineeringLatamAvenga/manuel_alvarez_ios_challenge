@@ -39,8 +39,9 @@ struct MapDetailScreen: View {
                     HStack {
                         Text("Coordinates:")
                             .font(.headline)
-                        Text("\(city.coordinates.latitude), \(city.coordinates.longitude)")
+                        Text("Lat: \(city.coordinates.latitude), Long: \(city.coordinates.longitude)")
                             .font(.caption)
+                            
                     }
                     
                     HStack {
@@ -48,6 +49,7 @@ struct MapDetailScreen: View {
                             .font(.headline)
                         Text(city.country)
                             .font(.caption)
+                            .accessibilityLabel("CityCountry")
                     }
                 }
                 .padding()

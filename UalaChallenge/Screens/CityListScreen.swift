@@ -91,6 +91,7 @@ struct CityListScreen: View {
             NavigationSplitView {
                 if citiesViewModel.isLoading {
                     ProgressView("Loading...")
+                        .accessibilityIdentifier("LoadingIndicator")
                 } else {
                     if filteredCities.isEmpty {
                         EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
@@ -106,6 +107,7 @@ struct CityListScreen: View {
                                         }
                                         Spacer()
                                         favoriteButton(for: city)
+                                        .accessibilityIdentifier("CityName_\(city.name)")
                                     }
                                     
                                     Button(action: {
@@ -119,6 +121,7 @@ struct CityListScreen: View {
                                         .foregroundColor(.purple)
                                     }
                                     .buttonStyle(PlainButtonStyle())
+                                    .accessibilityIdentifier("More Info Button \(city.name)") 
                                     
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
