@@ -4,6 +4,8 @@ Welcome to **UalaChallenge**, a SwiftUI application designed to showcase advance
 
 ## Table of Contents
 
+[Download the Challenge Instructions](https://github.com/EngineeringLatamAvenga/manuel_alvarez_ios_challenge/blob/main/Mobile%20Challenge%20-%20v0.5%20(1).pdf)
+
 - [Features](#features)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
@@ -54,3 +56,43 @@ UalaChallenge is built using the **MVVM (Model-View-ViewModel)** architecture, e
    ```bash
    open UalaChallenge.xcodeproj
    ```
+
+## Search Functionality
+
+The search bar in **UalaChallenge** is a fundamental feature that allows users to efficiently filter the list of cities. Below is a detailed explanation of how the search filter is managed in the `CitiesViewModel`, including the use of a dictionary to enhance efficiency.
+
+### **Handling the Search Filter in `CitiesViewModel.swift`**
+
+The `CitiesViewModel` is responsible for managing the business logic related to fetching, storing, and filtering city data. The search functionality is implemented as follows:
+
+1. **Fetching and Storing Data:**
+
+    - **Description:**
+        - Cities are fetched asynchronously from a data source (e.g., a server) and stored in the `cities` array.
+        - A dictionary named `cityIndex` is created to map the first letter of each city's name to an array of cities starting with that letter. This is achieved by iterating through each city and grouping them based on their first letter.
+
+2. **Implementing the Search Filter:**
+
+    - **Description:**
+        - `applyFilter()` checks if the `searchText` is empty. If it is, all cities are displayed. If not, it calls `filterCities(with:)` with the current search text.
+        - `filterCities(with:)` performs an asynchronous search using the provided prefix and updates the `filteredCities` array with the results.
+
+3. **Optimizing with a Dictionary (`cityIndex`):**
+
+    Using a dictionary to index cities by the first letter of their names significantly improves the efficiency of the search functionality. Here's how and why this optimization is implemented:
+
+    ### **Why Use a Dictionary for Filtering Cities?**
+
+    - **Search Efficiency:**
+        - Without an index, each search operation would require iterating through the entire list of cities, which can be time-consuming, especially with a large dataset.
+        - By using a dictionary that maps the first letter to corresponding cities, the search space is considerably reduced. For example, searching for cities starting with "B" only requires looking up the cities under the key `'b'` in the dictionary.
+
+    - **Constant Time Access:**
+        - Dictionaries in Swift provide constant time complexity \(O(1)\) for accessing elements by key, making search operations faster.
+
+
+## Summary
+
+The implementation of the search filter in `CitiesViewModel` leverages a dictionary (`cityIndex`) to map the first letter of each city's name to an array of corresponding cities. This optimization enhances search efficiency by reducing the number of comparisons needed during filtering, providing a scalable and maintainable solution that ensures a smooth and responsive user experience even with large datasets.
+
+---
