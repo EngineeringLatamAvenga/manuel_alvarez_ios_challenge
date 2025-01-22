@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct City: Identifiable, Codable {
+struct City: Identifiable, Codable, Hashable {
     let id = UUID()
     var _id: Int?
     var title: String { "\(name), \(country)" }
@@ -24,7 +24,7 @@ struct City: Identifiable, Codable {
     }
 }
 
-struct Coordinates: Codable {
+struct Coordinates: Codable, Hashable {
     let longitude: Double
     let latitude: Double
     

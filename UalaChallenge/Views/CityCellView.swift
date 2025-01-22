@@ -14,36 +14,22 @@ struct CityCellView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            NavigationLink(destination: MapDetailScreen(city: city, showMap: true)) {
-                VStack(alignment: .leading) {
-                    Text(city.title)
-                        .font(.headline)
-                    
-                    HStack {
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundColor(.purple)
-                        Text(city.subtitle)
-                    }
-                }
-            }
-            .padding(.bottom, 16)
-            .buttonStyle(PlainButtonStyle())
-            
-            NavigationLink(destination: MapDetailScreen(city: city, showInfo: true)) {
+            VStack(alignment: .leading) {
+                Text(city.title)
+                    .font(.headline)
+                
                 HStack {
-                    Image(systemName: "info.circle")
-                    Text("More info...")
-                        .font(.subheadline)
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(.purple)
+                    Text(city.subtitle)
                 }
-
             }
         }
-        .padding()
     }
 }
 
 #Preview {
-    NavigationStack {
-        CityCellView(city: City.previewItem)
-    }
+    CityCellView(city: City.previewItem)
 }
+
+

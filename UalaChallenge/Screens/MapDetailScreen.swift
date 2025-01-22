@@ -1,5 +1,5 @@
 //
-//  MapDetailScreen.swift
+//  CityListScreen.swift
 //  UalaChallenge
 //
 //  Created by Manny Alvarez on 21/01/2025.
@@ -11,83 +11,59 @@ import MapKit
 struct MapDetailScreen: View {
     
     // MARK: - Properties
-    let city: City
-    var showInfo: Bool = false
-    var showMap: Bool = false
-    
-    var isFavoriteImage: String {
-        city.isFavorite ? "star.fill" : "star"
-    }
-    
-    var isFavoriteValue: String {
-        city.isFavorite ? "Mark as favorite" : "None"
-    }
-    
+    @Binding var city: City?
+    @Binding var detailNavigation: DetailsNavigation
+
+
     var body: some View {
-        VStack {
-            if showMap {
-                Map {
-                    Annotation(
-                        "\(city.name)",
-                        coordinate: CLLocationCoordinate2D(
-                            latitude: city.coordinates.latitude,
-                            longitude: city.coordinates.longitude
-                        ),
-                        anchor: .bottom
-                    ) {
-                        Image(systemName: "mappin")
-                            .resizable()
-                            .foregroundColor(.purple)
-                    }
+        if let city = city {
+            switch detailNavigation {
+            case .map:
+                Map(coordinateRegion: .constant(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: city.coordinates.latitude, longitude: city.coordinates.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                )), annotationItems: [city]) { city in
+                    MapMarker(coordinate: CLLocationCoordinate2D(latitude: city.coordinates.latitude, longitude: city.coordinates.longitude), tint: .purple)
                 }
                 .mapStyle(.standard(elevation: .realistic))
                 .edgesIgnoringSafeArea(.all)
-            }
-
-            if showInfo {
-                VStack(alignment: .leading) {
+            case .info:
+                VStack(alignment: .leading, spacing: 16) {
                     HStack {
                         Text("Title:")
                             .font(.headline)
-                        Text("\(city.title)")
+                        Text(city.title)
                             .font(.caption)
                     }
                     
                     HStack {
-                        Text("Cordinates:")
+                        Text("Coordinates:")
                             .font(.headline)
-                        Text("\(city.subtitle)")
+                        Text("\(city.coordinates.latitude), \(city.coordinates.longitude)")
                             .font(.caption)
                     }
                     
                     HStack {
-                        Text("Cordinates:")
+                        Text("Country:")
                             .font(.headline)
-                        Text("\(city.country)")
+                        Text(city.country)
                             .font(.caption)
                     }
                     
                     HStack {
                         Text("Favorite:")
                             .font(.headline)
-                        Image(systemName: isFavoriteImage)
-                            .font(.caption)
-                        Text(isFavoriteValue)
-                            .font(.caption)
+                        Image(systemName: city.isFavorite ? "star.fill" : "star")
+                            .foregroundColor(city.isFavorite ? .yellow : .gray)
                     }
                 }
                 .padding()
+                .background(Color(UIColor.secondarySystemBackground))
                 .cornerRadius(8)
                 .shadow(radius: 8)
             }
-            
+        } else {
+            WelcomeView()
         }
-
-    }
-}
-
-#Preview {
-    NavigationStack {
-        MapDetailScreen(city: City.previewItem)
     }
 }

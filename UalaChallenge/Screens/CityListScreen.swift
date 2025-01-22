@@ -2,7 +2,7 @@
 //  CityListScreen.swift
 //  UalaChallenge
 //
-//  Created by Manny Alvarez on 20/01/2025.
+//  Created by Manny Alvarez on 21/01/2025.
 //
 
 import SwiftUI
@@ -13,6 +13,9 @@ struct CityListScreen: View {
     @Environment(CitiesStore.self) private var citiesStore
     @State private var searchText: String = ""
     @State private var filteredCities: [City] = []
+    @State private var selectedCity: City?
+    @State private var navigationSelection: NavigationItem? = nil
+
     
     // MARK: - Private methods:
     private func filterCities(with prefix: String) {
@@ -33,41 +36,76 @@ struct CityListScreen: View {
         }
     }
     
+    
     var body: some View {
-        NavigationStack {
-            ZStack {
-                if citiesStore.isLoading {
-                    ProgressView("Loading...")
+        NavigationSplitView {
+            if citiesStore.isLoading {
+                ProgressView("Loading...")
+            } else {
+                if filteredCities.isEmpty {
+                    EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
                 } else {
-                    if filteredCities.isEmpty {
-                        EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
-                    } else {
-                        ScrollView {
-                            LazyVStack {
-                                ForEach(filteredCities) { city in
-                                    CityCellView(city: city)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .cornerRadius(8)
-                                        
+                    List(filteredCities, selection: $navigationSelection) { city in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                navigationSelection = .map(city)
+                            }) {
+                                CityCellView(city: city)
+                            }
+                            
+                            Button(action: {
+                                navigationSelection = .info(city)
+                            }) {
+                                HStack {
+                                    Image(systemName: "info.circle")
+                                    Text("More info...")
+                                        .font(.subheadline)
+                                        .foregroundColor(.primary)
                                 }
                             }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(8)
+                    
+                    }
+                    .navigationTitle("Cities")
+                    .navigationDestination(for: NavigationItem.self) { navigationItem in
+                        switch navigationItem {
+                        case .info(let city):
+                            MapDetailScreen(city: .constant(city), detailNavigation: .constant(.info))
+                        case .map(let city):
+                            MapDetailScreen(city: .constant(city), detailNavigation: .constant(.map))
                         }
                     }
                 }
             }
-            .navigationTitle("Cities")
-            .task {
-                do {
-                    try await citiesStore.loadAllCities()
-                    applyFilter()
-                } catch {
-                    print(error.localizedDescription)
+
+        } detail: {
+            if let navigationItem = navigationSelection {
+                switch navigationItem {
+                case .info(let city):
+                    MapDetailScreen(city: .constant(city), detailNavigation: .constant(.info))
+                case .map(let city):
+                    MapDetailScreen(city: .constant(city), detailNavigation: .constant(.map))
                 }
+            } else {
+                WelcomeView()
             }
-            .searchable(text: $searchText, prompt: "Search cities")
-            .disabled(citiesStore.isLoading)
-            .onChange(of: searchText) { applyFilter() }
         }
+        .task {
+            do {
+                try await citiesStore.loadAllCities()
+                applyFilter()
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search cities")
+        .disabled(citiesStore.isLoading)
+        .onChange(of: searchText) { applyFilter() }
     }
 }
 

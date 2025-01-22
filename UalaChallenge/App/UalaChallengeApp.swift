@@ -10,6 +10,9 @@ import SwiftData
 
 @main
 struct UalaChallengeApp: App {
+    
+    // MARK: - Properties:
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -25,9 +28,7 @@ struct UalaChallengeApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                CityListScreen()
-            }
+            CityListScreen()
         }
         .environment(CitiesStore(httpClient: .development))
         .modelContainer(sharedModelContainer)
