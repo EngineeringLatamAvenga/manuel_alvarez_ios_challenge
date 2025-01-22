@@ -134,6 +134,12 @@ extension City {
             name: "Alupka",
             country: "UA",
             coordinates: Coordinates(longitude: 34.049999, latitude: 44.416668)
-        )
+        ),
+        City(
+            _id: 713515,
+            name: "Alabame",
+            country: "USA",
+            coordinates: Coordinates(longitude: 34.049999, latitude: 44.416668)
+        ),
     ]
 }

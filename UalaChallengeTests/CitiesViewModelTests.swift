@@ -95,4 +95,58 @@ final class CitiesViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.cities.isEmpty, "cities should be empty.")
         XCTAssertTrue(viewModel.cityIndex.isEmpty, "cityIndex should be empty.")
     }
+    
+    func testSearchCities_WithSingleResult() async throws {
+        // Arrange
+        mockHTTPClient.result = .success(City.cityItems)
+    
+        // Act
+        try await viewModel.loadAllCities()
+        
+        viewModel.searchCities(prefix: "Holu") { filteredCities in
+            // Assert
+            XCTAssertEqual(filteredCities.count, 1, "Shoud be return only one city.")
+            XCTAssertEqual(filteredCities.first?.name, "Holubynka", "The city shoud be Holubynka.")
+        }
+    }
+    
+    func testSearchCities_WithMultipleResults() async throws {
+        // Arrange
+        mockHTTPClient.result = .success(City.cityItems)
+        
+        // Act
+        try await viewModel.loadAllCities()
+        
+        viewModel.searchCities(prefix: "Holu") { filteredCities in
+            // Assert
+            XCTAssertEqual(filteredCities.count, 2, "Shoud be return 2 cites.")
+            XCTAssertEqual(filteredCities.first?.name, "Alabama", "The city shoud be Alabama.")
+        }
+    }
+    
+    func testSearchCities_CaseInsensitive() async throws {
+        // Arrange
+        mockHTTPClient.result = .success(City.cityItems)
+        // Act
+        try await viewModel.loadAllCities()
+        
+        viewModel.searchCities(prefix: "ala") { filteredCities in
+            // Assert
+            XCTAssertEqual(filteredCities.count, 1, "Shoud be return 1 city.")
+            XCTAssertEqual(filteredCities.first?.name, "Alabama", "The city shoud be Alabama.")
+        }
+    }
+    
+    func testSearchCities_WithNoResults() async throws {
+        // Arrange
+        mockHTTPClient.result = .success(City.cityItems)
+        
+        // Act
+        try await viewModel.loadAllCities()
+        
+        viewModel.searchCities(prefix: "XYZ") { filteredCities in
+            // Assert
+            XCTAssertEqual(filteredCities.count, 0, "Return empty.")
+        }
+    }
 }
