@@ -6,15 +6,20 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CityListScreen: View {
     
     //MARK: - Properties:
+    @Environment(\.modelContext) private var modelContext
+    @Query private var savedCities: [Favorite]
+    
     @Environment(CitiesStore.self) private var citiesStore
     @State private var searchText: String = ""
     @State private var filteredCities: [City] = []
     @State private var selectedCity: City?
     @State private var navigationSelection: NavigationItem? = nil
+    
 
     
     // MARK: - Private methods:
@@ -36,6 +41,53 @@ struct CityListScreen: View {
         }
     }
     
+    private func isFavorite(_ city: City) -> Bool {
+        return savedCities.contains { $0.cityId == city.id }
+    }
+    
+    private func addFavorite(_ city: City) {
+        let favorite = Favorite(city: city)
+        modelContext.insert(favorite)
+        saveContext()
+    }
+    
+    private func removeFavorite(_ city: City) {
+        if let favorite = savedCities.first(where: { $0.cityId == city.id }) {
+            modelContext.delete(favorite)
+            saveContext()
+        }
+    }
+    
+    private func toggleFavorite(_ city: City) {
+        if isFavorite(city) {
+            removeFavorite(city)
+        } else {
+            addFavorite(city)
+        }
+    }
+    
+    private func saveContext() {
+        do {
+            try modelContext.save()
+            print("Favorites saved successfully!")
+        } catch {
+            print("Error to save in context: \(error.localizedDescription)")
+        }
+    }
+    
+    @ViewBuilder
+    private func favoriteButton(for city: City) -> some View {
+        Button(action: {
+            toggleFavorite(city)
+        }) {
+            Image(systemName: isFavorite(city) ? "star.fill" : "star")
+                .foregroundColor(isFavorite(city) ? .yellow : .gray)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel(isFavorite(city) ? "Added to Favorites" : "Añadir a favoritos")
+    }
+
+    
     
     var body: some View {
         NavigationSplitView {
@@ -46,29 +98,39 @@ struct CityListScreen: View {
                     EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
                 } else {
                     List(filteredCities, selection: $navigationSelection) { city in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Button(action: {
-                                navigationSelection = .map(city)
-                            }) {
-                                CityCellView(city: city)
-                            }
-                            
-                            Button(action: {
-                                navigationSelection = .info(city)
-                            }) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) {
                                 HStack {
-                                    Image(systemName: "info.circle")
-                                    Text("More info...")
-                                        .font(.subheadline)
-                                        .foregroundColor(.primary)
+                                    Button(action: {
+                                        navigationSelection = .map(city)
+                                    }) {
+                                        CityCellView(city: city)
+                                    }
+                                    Spacer()
+                                    favoriteButton(for: city)
                                 }
+
+                                
+                                Button(action: {
+                                    navigationSelection = .info(city)
+                                }) {
+                                    HStack {
+                                        Image(systemName: "info.circle")
+                                        Text("More info...")
+                                            .font(.subheadline)
+                                            
+                                    }
+                                    .foregroundColor(.purple)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(8)
+                            
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(8)
+
                     
                     }
                     .navigationTitle("Cities")

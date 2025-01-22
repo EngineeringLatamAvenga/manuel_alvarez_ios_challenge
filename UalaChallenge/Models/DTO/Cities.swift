@@ -9,14 +9,13 @@ import Foundation
 
 
 struct City: Identifiable, Codable, Hashable {
-    let id = UUID()
-    var _id: Int?
+    var id: Int { _id }
+    let _id: Int
     var title: String { "\(name), \(country)" }
     var subtitle: String { "Lat: \(coordinates.latitude), Lon: \(coordinates.longitude)" }
     let name: String
     let country: String
     let coordinates: Coordinates
-    var isFavorite: Bool = false
     
     private enum CodingKeys: String, CodingKey {
         case coordinates = "coord"

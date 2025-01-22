@@ -29,6 +29,7 @@ class CitiesStore {
         self.cityIndex.removeAll()
         let resource = Resource(url: Constants.Urls.cities, modelType: [City].self)
         let data = try await httpClient.load(resource).sorted { ($0.name, $0.country) < ($1.name, $1.country) }
+        
         self.cities = data
         
         for city in data {
