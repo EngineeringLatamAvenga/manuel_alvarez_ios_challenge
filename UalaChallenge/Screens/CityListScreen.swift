@@ -10,7 +10,7 @@ import SwiftData
 
 struct CityListScreen: View {
     
-    //MARK: - Properties:
+    // MARK: - Propiedades
     @Environment(\.modelContext) private var modelContext
     @Query private var savedCities: [Favorite]
     
@@ -19,10 +19,9 @@ struct CityListScreen: View {
     @State private var filteredCities: [City] = []
     @State private var selectedCity: City?
     @State private var navigationSelection: NavigationItem? = nil
-    
+    @State private var showFavoritesOnly: Bool = false
 
-    
-    // MARK: - Private methods:
+    // MARK: - Métodos Privados
     private func filterCities(with prefix: String) {
         citiesStore.searchCities(prefix: prefix) { result in
             self.filteredCities = result
@@ -74,7 +73,7 @@ struct CityListScreen: View {
             print("Error to save in context: \(error.localizedDescription)")
         }
     }
-    
+
     @ViewBuilder
     private func favoriteButton(for city: City) -> some View {
         Button(action: {
@@ -84,90 +83,107 @@ struct CityListScreen: View {
                 .foregroundColor(isFavorite(city) ? .yellow : .gray)
         }
         .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel(isFavorite(city) ? "Added to Favorites" : "Añadir a favoritos")
+        .accessibilityLabel(isFavorite(city) ? "Added to Favorites" : "Add to favorite")
     }
 
-    
-    
     var body: some View {
-        NavigationSplitView {
-            if citiesStore.isLoading {
-                ProgressView("Loading...")
-            } else {
-                if filteredCities.isEmpty {
-                    EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
+        ZStack {
+            NavigationSplitView {
+                if citiesStore.isLoading {
+                    ProgressView("Loading...")
                 } else {
-                    List(filteredCities, selection: $navigationSelection) { city in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Button(action: {
-                                        navigationSelection = .map(city)
-                                    }) {
-                                        CityCellView(city: city)
-                                    }
-                                    Spacer()
-                                    favoriteButton(for: city)
-                                }
-
-                                
-                                Button(action: {
-                                    navigationSelection = .info(city)
-                                }) {
+                    if filteredCities.isEmpty {
+                        EmptyView(title: "No cities matching your search", icon: "mappin.slash.circle.fill")
+                    } else {
+                        List(filteredCities.filter { !showFavoritesOnly || isFavorite($0) }, selection: $navigationSelection) { city in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 8) {
                                     HStack {
-                                        Image(systemName: "info.circle")
-                                        Text("More info...")
-                                            .font(.subheadline)
-                                            
+                                        Button(action: {
+                                            navigationSelection = .map(city)
+                                        }) {
+                                            CityCellView(city: city)
+                                        }
+                                        Spacer()
+                                        favoriteButton(for: city)
                                     }
-                                    .foregroundColor(.purple)
+                                    
+                                    Button(action: {
+                                        navigationSelection = .info(city)
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "info.circle")
+                                            Text("More Info...")
+                                                .font(.subheadline)
+                                        }
+                                        .foregroundColor(.purple)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    
                                 }
-                                .buttonStyle(PlainButtonStyle())
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(8)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .navigationTitle("Cities")
+                        .navigationBarTitleDisplayMode(.large)
+                        .navigationDestination(for: NavigationItem.self) { navigationItem in
+                            switch navigationItem {
+                            case .info(let city):
+                                MapDetailScreen(city: .constant(city), detailNavigation: .constant(.info))
+                            case .map(let city):
+                                MapDetailScreen(city: .constant(city), detailNavigation: .constant(.map))
+                            }
+                        }
+                    }
+                }
+            } detail: {
+                if let navigationItem = navigationSelection {
+                    switch navigationItem {
+                    case .info(let city):
+                        MapDetailScreen(city: .constant(city), detailNavigation: .constant(.info))
+                    case .map(let city):
+                        MapDetailScreen(city: .constant(city), detailNavigation: .constant(.map))
+                    }
+                } else {
+                    WelcomeView()
+                }
+            }
+            .task {
+                do {
+                    try await citiesStore.loadAllCities()
+                    applyFilter()
+                } catch {
+                    print("Error: \(error.localizedDescription)")
+                }
+            }
+            .searchable(text: $searchText, prompt: "Type a city name")
+            .onChange(of: searchText) { applyFilter() }
+            
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showFavoritesOnly.toggle()
+                    }) {
+                        Image(systemName: showFavoritesOnly ? "star.fill" : "star")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
                             .padding()
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .cornerRadius(8)
-                            
-                        }
-
-                    
+                            .background(showFavoritesOnly ? Color.purple : Color.secondary)
+                            .foregroundColor(.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
-                    .navigationTitle("Cities")
-                    .navigationDestination(for: NavigationItem.self) { navigationItem in
-                        switch navigationItem {
-                        case .info(let city):
-                            MapDetailScreen(city: .constant(city), detailNavigation: .constant(.info))
-                        case .map(let city):
-                            MapDetailScreen(city: .constant(city), detailNavigation: .constant(.map))
-                        }
-                    }
+                    .accessibilityLabel(showFavoritesOnly ? "Show favorites" : "Show all cities")
+                    .padding()
                 }
             }
-
-        } detail: {
-            if let navigationItem = navigationSelection {
-                switch navigationItem {
-                case .info(let city):
-                    MapDetailScreen(city: .constant(city), detailNavigation: .constant(.info))
-                case .map(let city):
-                    MapDetailScreen(city: .constant(city), detailNavigation: .constant(.map))
-                }
-            } else {
-                WelcomeView()
-            }
         }
-        .task {
-            do {
-                try await citiesStore.loadAllCities()
-                applyFilter()
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
-        .searchable(text: $searchText, prompt: "Search cities")
-        .disabled(citiesStore.isLoading)
-        .onChange(of: searchText) { applyFilter() }
     }
 }
 

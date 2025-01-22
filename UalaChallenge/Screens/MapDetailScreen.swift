@@ -49,13 +49,6 @@ struct MapDetailScreen: View {
                         Text(city.country)
                             .font(.caption)
                     }
-                    
-//                    HStack {
-//                        Text("Favorite:")
-//                            .font(.headline)
-//                        Image(systemName: city.isFavorite ? "star.fill" : "star")
-//                            .foregroundColor(city.isFavorite ? .yellow : .gray)
-//                    }
                 }
                 .padding()
                 .background(Color(UIColor.secondarySystemBackground))
