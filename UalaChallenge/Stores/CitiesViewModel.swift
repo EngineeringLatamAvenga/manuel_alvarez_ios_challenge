@@ -1,5 +1,5 @@
 //
-//  CitiesStore.swift
+//  CitiesViewModel.swift
 //  UalaChallenge
 //
 //  Created by Manny Alvarez on 20/01/2025.
@@ -9,17 +9,17 @@ import Foundation
 import Observation
 
 @Observable
-class CitiesStore {
+class CitiesViewModel {
     
-    let httpClient: HTTPClient
+    let httpClient: HTTPClientProtocol
     private(set) var cities: [City] = []
     private(set) var filteredCities: [City] = []
     private(set) var isLoading: Bool = true
     
-    private var cityIndex: [Character: [City]] = [:]
+    private(set) var cityIndex: [Character: [City]] = [:]
     
 
-    init(httpClient: HTTPClient) {
+    init(httpClient: HTTPClientProtocol) {
         self.httpClient = httpClient
     }
     
@@ -28,18 +28,24 @@ class CitiesStore {
         self.cities.removeAll()
         self.cityIndex.removeAll()
         let resource = Resource(url: Constants.Urls.cities, modelType: [City].self)
-        let data = try await httpClient.load(resource).sorted { ($0.name, $0.country) < ($1.name, $1.country) }
-        
-        self.cities = data
-        
-        for city in data {
-            let firstLetter = city.name.lowercased().first!
-            if cityIndex[firstLetter] == nil {
-                cityIndex[firstLetter] = []
+        do {
+            let data = try await httpClient.load(resource).sorted { ($0.name, $0.country) < ($1.name, $1.country) }
+            
+            self.cities = data
+            
+            for city in data {
+                let firstLetter = city.name.lowercased().first!
+                if cityIndex[firstLetter] == nil {
+                    cityIndex[firstLetter] = []
+                }
+                cityIndex[firstLetter]?.append(city)
             }
-            cityIndex[firstLetter]?.append(city)
+            isLoading = false
+        } catch {
+            isLoading = false
+            throw NetworkError.badRequest
         }
-        isLoading = false
+
     }
 
     func searchCities(prefix: String, completion: @escaping ([City]) -> Void) {

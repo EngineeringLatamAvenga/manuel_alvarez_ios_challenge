@@ -14,7 +14,7 @@ struct CityListScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var savedCities: [Favorite]
     
-    @Environment(CitiesStore.self) private var citiesStore
+    @Environment(CitiesViewModel.self) private var citiesViewModel
     @State private var searchText: String = ""
     @State private var filteredCities: [City] = []
     @State private var selectedCity: City?
@@ -23,7 +23,7 @@ struct CityListScreen: View {
 
     // MARK: - Métodos Privados
     private func filterCities(with prefix: String) {
-        citiesStore.searchCities(prefix: prefix) { result in
+        citiesViewModel.searchCities(prefix: prefix) { result in
             self.filteredCities = result
         }
     }
@@ -32,7 +32,7 @@ struct CityListScreen: View {
         DispatchQueue.global(qos: .userInteractive).async {
             DispatchQueue.main.async {
                 if self.searchText.isEmpty {
-                    filteredCities = citiesStore.cities
+                    filteredCities = citiesViewModel.cities
                 } else {
                     filterCities(with: searchText)
                 }
@@ -89,7 +89,7 @@ struct CityListScreen: View {
     var body: some View {
         ZStack {
             NavigationSplitView {
-                if citiesStore.isLoading {
+                if citiesViewModel.isLoading {
                     ProgressView("Loading...")
                 } else {
                     if filteredCities.isEmpty {
@@ -153,7 +153,7 @@ struct CityListScreen: View {
             }
             .task {
                 do {
-                    try await citiesStore.loadAllCities()
+                    try await citiesViewModel.loadAllCities()
                     applyFilter()
                 } catch {
                     print("Error: \(error.localizedDescription)")
@@ -190,6 +190,6 @@ struct CityListScreen: View {
 #Preview {
     NavigationStack {
         CityListScreen()
-            .environment(CitiesStore(httpClient: .development))
+            .environment(CitiesViewModel(httpClient: HTTPClient()))
     }
 }

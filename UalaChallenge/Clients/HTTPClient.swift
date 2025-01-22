@@ -34,8 +34,10 @@ struct Resource<T: Codable> {
     var modelType: T.Type
 }
 
-
-struct HTTPClient {
+protocol HTTPClientProtocol {
+    func load<T: Codable>(_ resource: Resource<T>) async throws -> T
+}
+struct HTTPClient: HTTPClientProtocol {
     
     private let session: URLSession
     
@@ -98,8 +100,24 @@ struct HTTPClient {
     }
 }
 
-extension HTTPClient {
-    static var development: HTTPClient {
-        HTTPClient()
+class DevelopmentHTTPClient: HTTPClientProtocol {
+    
+    // Static instance for development (previews)
+    static var development: DevelopmentHTTPClient {
+        return DevelopmentHTTPClient()
+    }
+    
+    // Sample data to return during development
+    private let sampleCities: [City] = City.cityItems
+    
+    // Implement the required method from HTTPClientProtocol
+    func load<T>(_ resource: Resource<T>) async throws -> T where T : Decodable, T : Encodable {
+        // Ensure that the expected type is [City]
+        guard T.self == [City].self else {
+            fatalError("DevelopmentHTTPClient only supports responses for [City].")
+        }
+            
+        // Return sample data
+        return sampleCities as! T
     }
 }
