@@ -117,7 +117,7 @@ final class CitiesViewModelTests: XCTestCase {
         // Act
         try await viewModel.loadAllCities()
         
-        viewModel.searchCities(prefix: "Holu") { filteredCities in
+        viewModel.searchCities(prefix: "Al") { filteredCities in
             // Assert
             XCTAssertEqual(filteredCities.count, 2, "Shoud be return 2 cites.")
             XCTAssertEqual(filteredCities.first?.name, "Alabama", "The city shoud be Alabama.")

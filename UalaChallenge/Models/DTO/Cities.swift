@@ -137,7 +137,7 @@ extension City {
         ),
         City(
             _id: 713515,
-            name: "Alabame",
+            name: "Alabama",
             country: "USA",
             coordinates: Coordinates(longitude: 34.049999, latitude: 44.416668)
         ),
